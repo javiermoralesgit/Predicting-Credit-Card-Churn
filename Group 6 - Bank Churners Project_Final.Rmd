@@ -1,0 +1,1090 @@
+---
+title: "Bank Churners"
+author: "Anna Ustin, Fernando Libertella, Javier Morales, Thomas Cooper"
+date: "2/27/2021"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ggcorrplot)
+
+# Loading the dataset
+#Anna
+#setwd("C:/Users/AnnaA/OneDrive/Documents/Columbia/F&M II")
+
+#Fernando
+#setwd("/Users/fibertell001/Downloads")
+
+#Tom
+setwd("C:/5205")
+
+
+BankChurners = read.csv('BankChurners.csv')
+
+head(BankChurners)
+
+```
+
+```{r}
+
+# Replacing the elements of the Attrition_Flag variable with # 1 = Attrited Customer, 0 = Existing Customer
+BankChurners$Attrition_Flag[BankChurners$Attrition_Flag == "Attrited Customer"] <- 1 
+BankChurners$Attrition_Flag[BankChurners$Attrition_Flag == "Existing Customer"] <- 0
+
+
+##changing the type of the column (from chr to dbl)
+Attrition_Flag = as.numeric(BankChurners$Attrition_Flag)
+BankChurners$Attrition_Flag = (Attrition_Flag)
+
+BankChurners$Gender[BankChurners$Gender == "F"] <- 1 
+BankChurners$Gender[BankChurners$Gender == "M"] <- 0
+
+
+##changing the type of the column (from chr to dbl)
+Gender_asNumbers = as.numeric(BankChurners$Gender)
+BankChurners$Gender = (Gender_asNumbers)
+
+BankChurners$Marital_Status[BankChurners$Marital_Status == "Married"] <- 0 
+BankChurners$Marital_Status[BankChurners$Marital_Status == "Single"] <- 1
+BankChurners$Marital_Status[BankChurners$Marital_Status == "Unknown"] <- 2
+BankChurners$Marital_Status[BankChurners$Marital_Status == "Divorced"] <- 3
+
+##changing the type of the column (from chr to dbl)
+Marital_Status_asNumbers = as.numeric(BankChurners$Marital_Status)
+BankChurners$Marital_Status = (Marital_Status_asNumbers)
+
+str(BankChurners$Marital_Status)
+
+BankChurners$Income_Category[BankChurners$Income_Category == "Less than $40K"] <- 0 
+BankChurners$Income_Category[BankChurners$Income_Category == "$40K - $60K"] <- 1
+BankChurners$Income_Category[BankChurners$Income_Category == "$60K - $80K"] <- 2
+BankChurners$Income_Category[BankChurners$Income_Category == "$80K - $120K"] <- 3
+BankChurners$Income_Category[BankChurners$Income_Category == "$120K +"] <- 4
+BankChurners$Income_Category[BankChurners$Income_Category == "Unknown"] <- 5
+
+##changing the type of the column (from chr to dbl)
+Income_Category_asNumbers = as.numeric(BankChurners$Income_Category)
+BankChurners$Income_Category = (Income_Category_asNumbers)
+
+
+
+BankChurners$Education_Level[BankChurners$Education_Level == "Uneducated"] <- 0 
+BankChurners$Education_Level[BankChurners$Education_Level == "High School"] <- 1
+BankChurners$Education_Level[BankChurners$Education_Level == "College"] <- 2
+BankChurners$Education_Level[BankChurners$Education_Level == "Graduate"] <- 3
+BankChurners$Education_Level[BankChurners$Education_Level == "Post-Graduate"] <- 4
+BankChurners$Education_Level[BankChurners$Education_Level == "Doctorate"] <- 5
+BankChurners$Education_Level[BankChurners$Education_Level == "Unknown"] <- 6
+
+##changing the type of the column (from chr to dbl)
+Education_Level_asNumbers = as.numeric(BankChurners$Education_Level)
+BankChurners$Education_Level = (Education_Level_asNumbers)
+
+BankChurners$Card_Category[BankChurners$Card_Category == "Blue"] <- 0 
+BankChurners$Card_Category[BankChurners$Card_Category == "Silver"] <- 1
+BankChurners$Card_Category[BankChurners$Card_Category == "Gold"] <- 2
+BankChurners$Card_Category[BankChurners$Card_Category == "Platinum"] <- 3
+
+##changing the type of the column (from chr to dbl)
+Card_Category_asNumbers = as.numeric(BankChurners$Card_Category)
+BankChurners$Card_Category = (Card_Category_asNumbers)
+
+
+
+
+
+head(BankChurners)
+
+
+
+```
+
+```{r}
+# Data exploration 
+library(ggplot2)
+ggplot(BankChurners, aes( Attrition_Flag))+
+  geom_bar()
+
+BankChurners%>%
+  group_by(Attrition_Flag)%>%
+  summarize(number=n())
+
+
+BankChurners%>%
+  group_by(Education_Level)%>%
+  summarize(number=n())
+
+BankChurners%>%
+  group_by(Gender)%>%
+  summarize(number=n())
+
+BankChurners%>%
+  group_by(Customer_Age)%>%
+  summarize(number=n())
+
+BankChurners%>%
+  group_by(Income_Category)%>%
+  summarize(number=n())
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(Education_Level)%>%
+  summarize(edu_attrition_count=n())%>%
+  ungroup()
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(Gender)%>%
+  summarize(gender_attrition_count=n())%>%
+  ungroup()
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(Card_Category)%>%
+  summarize(card_type_attrition_count=n())%>%
+  ungroup()
+```
+
+```{r}
+# Data modifications
+
+# Removing columns that will not be used during analysis
+BankChurners = subset(BankChurners, select = -c(1, 22, 23))
+
+# Renaming column
+BankChurners = BankChurners %>%
+  rename(Num_Of_Products = Total_Relationship_Count)
+
+head(BankChurners)
+```
+
+```{r}
+# Adding new column - age_grouped 
+
+### something wrong happens here - there are no NAs in age variable but after grouping we see NA!
+
+BankChurners = BankChurners%>%
+  mutate(
+    Customer_Age_Grouped = case_when(
+      Customer_Age<=35 ~ "Under 35",
+      Customer_Age>=36 & Customer_Age<=50 ~ "36 to 50", 
+      Customer_Age>=51 & Customer_Age<=65 ~ "51 to 65",
+      Customer_Age>66 ~ "Over 66"
+    )
+  )
+
+any(is.na(BankChurners$Customer_Age_Grouped))
+unique(BankChurners$Customer_Age_Grouped)
+
+
+BankChurners$Customer_Age_Grouped[BankChurners$Customer_Age_Grouped == "Under 35"] <- 0 
+BankChurners$Customer_Age_Grouped[BankChurners$Customer_Age_Grouped == "36 to 50"] <- 1
+BankChurners$Customer_Age_Grouped[BankChurners$Customer_Age_Grouped == "51 to 65"] <- 2
+BankChurners$Customer_Age_Grouped[BankChurners$Customer_Age_Grouped == "Over 66"] <- 3
+
+#na.omit(BankChurners$Customer_Age_Grouped, na.action = "replace", fill = 4)
+BankChurners$Customer_Age_Grouped[is.na(BankChurners$Customer_Age_Grouped)]=4
+
+##changing the type of the column (from chr to dbl)
+Customer_Age_Grouped_asNumbers = as.numeric(BankChurners$Customer_Age_Grouped)
+BankChurners$Customer_Age_Grouped = (Customer_Age_Grouped_asNumbers)
+
+unique(BankChurners)
+unique(BankChurners$Customer_Age_Grouped)
+
+head(BankChurners)
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(Customer_Age_Grouped)%>%
+  summarize(Customer_Age_Grouped_count=n())%>%
+  ungroup()
+
+```
+
+```{r}
+#adding one more new column
+
+
+library(dplyr)
+avg_balance_per = round (BankChurners$Total_Revolving_Bal*100/BankChurners$Credit_Limit, 2)
+BankChurners = cbind(BankChurners, avg_balance_per)
+head(BankChurners)
+
+BankChurners = BankChurners%>%
+  mutate(
+    avg_balance_per_grouped = case_when(
+      avg_balance_per<=35 ~ "Under 35%",
+      avg_balance_per>=36 & avg_balance_per<=50 ~ "36% to 50%", 
+      avg_balance_per>=51 & avg_balance_per<=75 ~ "51% to 75%",
+      avg_balance_per>75 ~ "Over 75%"
+    )
+  )
+
+
+BankChurners$avg_balance_per_grouped[BankChurners$avg_balance_per_grouped == "Under 35%"] <- 0 
+BankChurners$avg_balance_per_grouped[BankChurners$avg_balance_per_grouped == "36% to 50%"] <- 1
+BankChurners$avg_balance_per_grouped[BankChurners$avg_balance_per_grouped == "51% to 75%"] <- 2
+BankChurners$avg_balance_per_grouped[BankChurners$avg_balance_per_grouped == "Over 75%"] <- 3
+
+BankChurners$avg_balance_per_grouped[is.na(BankChurners$avg_balance_per_grouped)]=4
+
+##changing the type of the column (from chr to dbl)
+avg_balance_per_grouped_asNumbers = as.numeric(BankChurners$avg_balance_per_grouped)
+BankChurners$avg_balance_per_grouped = (avg_balance_per_grouped_asNumbers)
+
+head(BankChurners)
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(avg_balance_per_grouped)%>%
+  summarize(avg_balance_per_grouped_count=n())%>%
+  ungroup()
+```
+
+```{r}
+
+BankChurners%>%
+  filter(Attrition_Flag == "1")%>%
+  group_by(avg_balance_per_grouped)%>%
+  summarize(avg_balance_per_grouped_count=n())%>%
+  ungroup()
+
+
+BankChurners
+```
+
+```{r}
+#Split Data - when splitting data we have to make sure we have appropriate number of Attrited Customers. modifying the code below. - AU
+
+library (caTools)
+set.seed (1)
+split = sample.split (BankChurners$Attrition_Flag,SplitRatio =0.7)
+train =BankChurners[split,]
+test =BankChurners[!split,]
+
+#split = sample(1:nrow(BankChurners),0.7*nrow(BankChurners)) #pls delete if agree with the above
+#train = BankChurners[split,] #pls delete if agree with the above
+#test = BankChurners[-split,] #pls delete if agree with the above
+
+nrow(train)
+nrow(test)
+nrow(BankChurners)
+
+```
+
+```{r}
+#few charts for data exploration slide 
+tapply(train$Credit_Limit,train$Attrition_Flag, mean)
+
+library(ggplot2)
+ggplot(data=train,aes(x=factor(Attrition_Flag),y=Credit_Limit,fill=factor(Attrition_Flag)))+ geom_bar(stat='summary',fun.y='mean')+ coord_flip()
+
+#from the chart below we see that customers tend to stay if they have higher credit limit 
+```
+
+```{r}
+
+#the chart below shows that women (1) tend to churn more
+
+
+tapply(train$Attrition_Flag,train$Gender,mean)
+
+ggplot(data=train,aes(x=Gender,y=Attrition_Flag,fill=Gender))+ geom_bar(stat='summary',fun.y='mean')+ coord_flip()
+```
+
+```{r}
+
+#the chart below shows that customers with under $40K income tend to churn more
+
+tapply(train$Attrition_Flag,train$Income_Category,mean)
+
+ggplot(data=train,aes(x=Income_Category,y=Attrition_Flag,fill=Income_Category))+ geom_bar(stat='summary',fun.y='mean')+ coord_flip()
+
+
+```
+
+```{r}
+#Linear Regression Model
+lm_model1 = lm(Attrition_Flag ~ Customer_Age+Gender+Dependent_count+Education_Level+Marital_Status+Income_Category+Card_Category+Months_on_book+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+Total_Revolving_Bal+Total_Amt_Chng_Q4_Q1+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+Avg_Utilization_Ratio+Customer_Age_Grouped+avg_balance_per+avg_balance_per_grouped, data = train)
+
+summary(lm_model1)
+
+AIC(lm_model1)
+
+
+
+pred_lm1 = predict(lm_model1)
+sse_lm1 = sum((pred_lm1 - train$Attrition_Flag)^2)
+sst_lm1 = sum((mean(train$Attrition_Flag)-train$Attrition_Flag)^2)
+lm1_r2 = 1 - sse_lm1/sst_lm1; lm1_r2
+
+rmse_lm1 = sqrt(mean((pred_lm1-train$Attrition_Flag)^2)); rmse_lm1
+
+```
+
+```{r}
+#Linear Regression Model with only significant variables 
+lm_model2 = lm(Attrition_Flag ~ Gender+Dependent_count+Marital_Status+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Total_Revolving_Bal+Total_Amt_Chng_Q4_Q1+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+avg_balance_per_grouped, data = train)
+
+summary(lm_model2)
+
+AIC(lm_model2)
+
+pred_lm2 = predict(lm_model2)
+sse_lm2= sum((pred_lm2 - train$Attrition_Flag)^2)
+sst_lm2 = sum((mean(train$Attrition_Flag)-train$Attrition_Flag)^2)
+lm2_r2 = 1 - sse_lm2/sst_lm2; lm2_r2
+
+rmse_lm2 = sqrt(mean((pred_lm2-train$Attrition_Flag)^2)); rmse_lm2
+```
+
+```{r}
+#Linear Regression Model with only significant variables from model 2
+lm_model3 = lm(Attrition_Flag ~ Gender+Dependent_count+Marital_Status+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Total_Revolving_Bal+Total_Amt_Chng_Q4_Q1+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1, data = train)
+
+summary(lm_model3)
+
+AIC(lm_model3)
+
+pred_lm3 = predict(lm_model3)
+sse_lm3 = sum((pred_lm3 - train$Attrition_Flag)^2)
+sst_lm3 = sum((mean(train$Attrition_Flag)-train$Attrition_Flag)^2)
+lm3_r2 = 1 - sse_lm3/sst_lm3; lm3_r2
+
+rmse_lm3 = sqrt(mean((pred_lm3-train$Attrition_Flag)^2)); rmse_lm3
+```
+
+```{r}
+#this linear regression model is based on personal opinion of what variables might be important 
+lm_model4 = lm(Attrition_Flag ~ Customer_Age+Gender+Dependent_count+Education_Level+Income_Category+Card_Category+Months_on_book+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+avg_balance_per, data = train)
+
+summary(lm_model4)
+
+AIC(lm_model4)
+
+pred_lm4 = predict(lm_model4)
+sse_lm4 = sum((pred_lm4 - train$Attrition_Flag)^2)
+sst_lm4 = sum((mean(train$Attrition_Flag)-train$Attrition_Flag)^2)
+lm4_r2 = 1 - sse_lm4/sst_lm4; lm4_r2
+
+rmse_lm4 = sqrt(mean((pred_lm4-train$Attrition_Flag)^2)); rmse_lm4
+
+
+
+```
+
+```{r}
+#comparing models - Lower AIC, better the model.
+AIC(lm_model1)
+AIC(lm_model2)
+AIC(lm_model3)
+AIC(lm_model4)
+
+```
+
+```{r}
+model_lm = c('lm_model1', 'lm_model2', 'lm_model3', 'lm_model4')
+sse_lm = c(sse_lm1, sse_lm2, sse_lm3, sse_lm4)
+rmse_lm = c(rmse_lm1, rmse_lm2, rmse_lm3, rmse_lm4)
+r2_lm = round(c(lm1_r2, lm2_r2, lm3_r2, lm4_r2),4)
+results_lm = data.frame(model_lm, sse_lm, rmse_lm, r2_lm)
+library(tidyr); library(dplyr)
+results_lm
+
+
+```
+
+```{r}
+#plot of rmse for all lm models 
+results_lm%>% 
+gather(key = metric, value = values,2:4)%>% 
+ggplot(aes(x=model_lm, y=values))+ 
+geom_bar(stat='identity', fill='blue')+ 
+facet_grid(metric~., scales = 'free_y')
+
+```
+
+
+```{r}
+#predicting on test data using model 1 since it has the best AIC and rmse
+pred_lm1 = predict(lm_model1,newdata=test,type='response')
+ct_lm = table(Attrition_Flag = test$Attrition_Flag, predictions = as.integer(pred_lm1>0.5)); ct_lm
+```
+
+```{r}
+#Linear Regression Roc Curve & AUC
+library(pROC)
+test_prob_lm = predict(lm_model1, newdata = test, type = "response")
+test_roc_lm = roc(test$Attrition_Flag ~ test_prob_lm, plot = TRUE, print.auc = TRUE)
+
+as.numeric(test_roc_lm$auc)
+
+
+```
+
+
+```{r}
+#Logistic Regression Model
+
+library(glmnet)
+library(caTools)
+glm_model1 = glm(Attrition_Flag ~ Customer_Age+Gender+Dependent_count+Education_Level+Marital_Status+Income_Category+Card_Category+Months_on_book+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+Total_Revolving_Bal+Total_Amt_Chng_Q4_Q1+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+Avg_Utilization_Ratio+Customer_Age_Grouped+avg_balance_per+avg_balance_per_grouped, data = train, family=binomial)
+
+summary(glm_model1)
+
+
+pred_glm1 = predict(glm_model1)
+sse_glm1 = sum((pred_glm1 - train$Attrition_Flag)^2)
+sst_glm1 = sum((mean(train$Attrition_Flag)-train$Attrition_Flag)^2)
+glm1_r2 = 1 - sse_glm1/sst_glm1; glm1_r2
+
+rmse_glm1 = sqrt(mean((pred_glm1-train$Attrition_Flag)^2)); rmse_glm1
+
+```
+
+```{r}
+#Logistic Regression model with only with significant variables from glm_model 1
+
+glm_model2 = glm(Attrition_Flag ~ Customer_Age+Gender+Dependent_count+Income_Category+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+Total_Revolving_Bal+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+avg_balance_per_grouped, data = train, family=binomial)
+
+summary(glm_model2)
+```
+
+```{r}
+#Logistic Regression model with only with significant variables from glm_model 2
+
+glm_model3 = glm(Attrition_Flag ~ Customer_Age+Dependent_count+Income_Category+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Total_Revolving_Bal+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+avg_balance_per_grouped, data = train, family=binomial)
+
+summary(glm_model3)
+
+```
+```{r}
+#Logistic Regression model with only with significant variables from glm_model 3
+
+glm_model4 = glm(Attrition_Flag ~ Dependent_count+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Total_Revolving_Bal+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+avg_balance_per_grouped, data = train, family=binomial)
+
+summary(glm_model4)
+
+```
+
+
+```{r}
+# this Logistic Regression model is based on personal opinion of what variables might be important  
+glm_model5 = glm(Attrition_Flag ~ Customer_Age+Gender+Dependent_count+Education_Level+Income_Category+Card_Category+Months_on_book+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+avg_balance_per, data = train, family=binomial)
+
+summary(glm_model5)
+```
+
+```{r}
+#comparing models - Lower AIC, better the model.
+summary(glm_model1)$aic
+summary(glm_model2)$aic
+summary(glm_model3)$aic
+summary(glm_model4)$aic
+summary(glm_model5)$aic
+
+```
+  
+```{r}
+#predicting on 1st model since it has the best AIC
+pred1 = predict(glm_model1,type='response')
+data.frame(Attrition_Flag = train$Attrition_Flag[1:50], predicted_probability = pred1[1:50], prediction_binary = as.integer(pred1[1:50]>0.5))
+
+
+```
+
+```{r}
+#checking proportion of attrition_flag in the train set
+prop.table(table(train$Attrition_Flag))
+
+```
+
+```{r}
+#predicting on test data
+pred1 = predict(glm_model1,newdata=test,type='response')
+ct = table(Attrition_Flag = test$Attrition_Flag, predictions = as.integer(pred1>0.5)); ct
+```
+
+```{r}
+#Logistic Regression Roc Curve & AUC
+library(pROC)
+test_prob = predict(glm_model1, newdata = test, type = "response")
+test_roc = roc(test$Attrition_Flag ~ test_prob, plot = TRUE, print.auc = TRUE)
+
+as.numeric(test_roc$auc)
+
+
+```
+
+
+```{r}
+
+#trying tree model
+
+library(rpart) 
+classTree1 = rpart(Attrition_Flag ~.,data=train,method='class')
+summary (classTree1)
+```
+
+```{r}
+#plotting 
+
+library(rpart.plot) 
+rpart.plot(classTree1)
+```
+
+
+```{r}
+pred_classTree1 = predict(classTree1,newdata=test) 
+
+sse_classTree1 = sum((pred_classTree1 - test$Attrition_Flag)^2); sse_classTree1
+```
+```{r}
+#Classification Tree Roc Curve
+
+library(ROCR) 
+
+ROCRpred_class1 = prediction(pred_classTree1 [,2],test$Attrition_Flag) 
+ROCRperf_class1 = performance(ROCRpred_class1,"tpr","fpr") 
+plot(ROCRperf_class1)
+
+as.numeric(performance(ROCRpred_class1,"auc")@y.values) # auc measure
+```
+
+```{r}
+#Regression Trees
+
+regTree1 = rpart(Attrition_Flag~.,data=train,method = 'anova')
+rpart.plot (regTree1)
+summary (regTree1)
+```
+
+```{r}
+
+#Regression Trees Prediction 
+
+pred_regTree1 = predict(regTree1,newdata=test) 
+
+sse_regTree1 = sum((pred_regTree1 - test$Attrition_Flag)^2); sse_regTree1
+```
+
+
+
+```{r}
+#Clustering prep: removing outcome variable and normalizing. Our data is clean so mice is not needed.
+
+library("dbscan")
+
+trainMinusDV = subset(train,select=-c(Attrition_Flag))
+testMinusDV = subset(test,select=-c(Attrition_Flag))
+
+library(caret)
+preproc = preProcess(trainMinusDV)
+trainNorm = predict(preproc,trainMinusDV)
+testNorm = predict(preproc,testMinusDV)
+```
+
+
+```{r}
+
+#HDBSCAN clustering, method = robust single
+
+#note that plots might crash our PC
+
+#plot(trainNorm, pch = 2)
+
+
+clusters1 =  hdbscan(trainNorm, minPts = 5)
+clusters1
+
+#plot(trainNorm, col=clusters1$cluster+1, pch=20)
+
+clusters1$hc
+
+#plot(clusters1$hc, main="HDBSCAN* Hierarchy")
+
+
+#plot(clusters1, gradient = c("yellow", "orange", "red", "blue"))
+
+#plot(trainNorm, pch=20, cex=0.25)
+
+clusters2 <- hdbscan(trainNorm, minPts = 25)
+clusters2
+
+clusters2$hc
+
+```
+
+```{r}
+
+#Hierarchical Cluster Analysis
+
+library(cluster)
+
+d_euclidean = dist(trainNorm,method = 'euclidean')
+
+d_manhattan = dist(trainNorm,method = 'manhattan')
+
+
+clusters3 = hclust(d = d_euclidean,method='ward.D2')
+clusters4 = hclust(d = d_manhattan,method='ward.D2')
+
+
+plot(clusters3)
+plot(clusters4)
+
+library(dendextend)
+plot(color_branches(as.dendrogram(clusters3),k = 3,groupLabels = F))
+
+plot(color_branches(as.dendrogram(clusters4),k = 4,groupLabels = F))
+
+
+c1 = cor(cophenetic(clusters3),d_euclidean)
+c2 = cor(cophenetic(clusters4),d_manhattan)
+
+plot(cut(as.dendrogram(clusters3),h=10)$upper)
+plot(clusters3)
+rect.hclust(tree=clusters3,k = 3,border = 'blue')
+
+
+h_segments1 = cutree(tree = clusters3,k=2)
+table(h_segments1)
+
+
+plot(cut(as.dendrogram(clusters4),h=10)$upper)
+plot(clusters4)
+rect.hclust(tree=clusters4,k = 4,border = 'blue')
+
+
+hc_Manhattan = cutree(tree = clusters4,k=4)
+table(hc_Manhattan)
+
+c1
+c2
+
+
+```
+
+```{r}
+#Enhanced Visualization of Dendrogram
+
+library(factoextra)
+fviz_dend(x=clusters4,k=4)
+
+library(gridExtra)
+grid.arrange(fviz_dend(x = clusters4,k=2),
+             fviz_dend(x = clusters4,k=3),
+             fviz_dend(x = clusters4,k=4))
+```
+
+
+
+
+
+```{r}
+
+#install.packages('psych')
+
+library(psych)
+
+temp2 = data.frame(cluster = factor(hc_Manhattan),
+           hc_factor1 = fa(trainNorm,nfactors = 2,rotate = 'varimax')$scores[,1],
+           hc_factor2 = fa(trainNorm,nfactors = 2,rotate = 'varimax')$scores[,2])
+ggplot(temp2,aes(x=hc_factor1,y=hc_factor2,col=cluster))+
+  geom_point()
+```
+
+```{r}
+#ploting 2 variables
+
+trainNorm %>%
+  ggplot(aes(avg_balance_per, Customer_Age, col = as.factor(hc_Manhattan))) +
+  geom_point() +
+  theme_bw()
+
+
+```
+
+
+
+
+
+
+```{r}
+
+#Gaussian Mixture Modelling for Model-Based Clustering
+
+library(mclust)
+clus = Mclust(trainNorm)
+summary(clus)
+
+clus4 = Mclust(trainNorm,G = 4)
+summary(clus4)
+
+bic = sapply(1:9,FUN=function(x){
+  -Mclust(trainNorm,G=x)$bic
+})
+dat = data.frame(clusters=1:9,bic)
+
+ggplot(dat,aes(x=clusters,y=bic))+
+  geom_line(color='steelblue',size=1.4)+
+  scale_x_continuous(breaks=1:9,minor_breaks = 1:9)
+
+mcluster = Mclust(trainNorm,G=4)
+
+mcluster
+
+
+```
+
+```{r}
+#silhouette 
+
+library(cluster)
+sil = sapply(2:9,FUN=function(x){
+  pam(trainNorm,k=x)$silinfo$avg.width
+})
+
+ggplot(data.frame(clusters=2:9,avg_silhouette_width = sil),aes(x=clusters,y=avg_silhouette_width))+
+  geom_line(color='steelblue',size=1.4)+
+  scale_x_continuous(breaks=1:9,minor_breaks = 1:9)+
+  geom_vline(xintercept=4)
+
+silhoette_width = sapply(2:10,
+                         FUN = function(x) pam(trainNorm,k = x)$silinfo$avg.width)
+ggplot(data=data.frame(cluster = 2:10,silhoette_width),aes(x=cluster,y=silhoette_width))+
+  geom_line(col='steelblue',size=1.2)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(2,10,1))
+
+set.seed(100)
+km = kmeans(trainNorm, centers = 4,iter.max = 1000)
+
+library(cluster)
+clusplot(trainNorm,
+         km$cluster,
+         color=T,shade=T,labels=4,lines=0,main='k-means Cluster Plot')
+```
+
+```{r}
+
+within_ss = sapply(1:10,FUN = function(x) kmeans(x = trainNorm,centers = x,iter.max = 1000,nstart = 25)$tot.withinss)
+ggplot(data=data.frame(cluster = 1:10,within_ss),aes(x=cluster,y=within_ss))+
+  geom_line(col='steelblue',size=1.2)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(1,10,1))
+```
+
+```{r}
+
+ratio_ss = sapply(1:10,FUN = function(x) {km = kmeans(x = trainNorm,centers = x,iter.max = 1000,nstart = 25)
+km$betweenss/km$totss} )
+ggplot(data=data.frame(cluster = 1:10,ratio_ss),aes(x=cluster,y=ratio_ss))+
+  geom_line(col='steelblue',size=1.2)+
+  geom_point()+
+  scale_x_continuous(breaks=seq(1,10,1))
+```
+
+
+
+```{r}
+
+wss <- function(k){
+  kmeans(trainNorm, centers = k, nstart = 25)$tot.withinss
+}
+
+wss <- Vectorize(wss)
+```
+
+
+```{r}
+
+data_to_plot <- tibble(num_clusters = 1:10,
+       wss = wss(num_clusters))
+
+data_to_plot %>%
+  ggplot(aes(num_clusters, wss)) +
+  geom_point() +
+  geom_line() +
+  theme_bw()
+
+
+```
+
+```{r}
+
+#install.packages("factoextra")
+
+library(factoextra)
+fviz_nbclust(trainNorm, FUN = hcut, method = "wss")
+
+```
+
+
+```{r}
+daisy1 = daisy(trainNorm,metric = "gower");daisy1
+
+Dist_mat <- as.matrix(daisy1)
+image(x = 1:nrow(x = Dist_mat),
+      y = 1:ncol(x = Dist_mat),
+      z = Dist_mat,
+      axes = FALSE,
+      xlab = "",
+      ylab = "",
+      col = rainbow(n = 100))
+```
+
+
+
+```{r}
+
+#adding clustering results to lm 
+lm_model5_clus = lm(Attrition_Flag ~ as.factor(hc_Manhattan), data = train)
+
+lm_model5_clus
+
+AIC(lm_model5_clus)
+
+```
+
+```{r}
+
+#install.packages("flexclust")
+library(flexclust)
+km_kcca = as.kcca(km,trainNorm) # flexclust uses objects of the classes kcca
+clusterTrain = predict(km_kcca)
+clusterTest = predict(km_kcca,newdata=testNorm)
+#Distribution of wines across clusters in Train
+table(clusterTrain)
+
+```
+
+
+```{r}
+table(clusterTest)
+```
+
+```{r}
+#Split train and test based on cluster membership
+
+train1 = subset(train,clusterTrain==1)
+train2 = subset(train,clusterTrain==2)
+train3 = subset(train,clusterTrain==3)
+train4 = subset(train,clusterTrain==4)
+test1 = subset(test,clusterTest==1)
+test2 = subset(test,clusterTest==2)
+test3 = subset(test,clusterTest==3)
+test4 = subset(test,clusterTest==4)
+
+```
+
+
+```{r}
+lm_model6_clus = lm(Attrition_Flag~.,train1)
+lm_model7_clus = lm(Attrition_Flag~.,train2)
+lm_model8_clus = lm(Attrition_Flag~.,train3)
+lm_model9_clus = lm(Attrition_Flag~.,train4)
+pred_lm_model6_clus = predict(lm_model6_clus,newdata=test1)
+pred_lm_model7_clus = predict(lm_model7_clus,newdata=test2)
+pred_lm_model8_clus = predict(lm_model8_clus,newdata=test3)
+pred_lm_model9_clus = predict(lm_model9_clus,newdata=test4)
+sse_lm6 = sum((test1$Attrition_Flag-pred_lm_model6_clus)^2); sse_lm6
+sse_lm7 = sum((test2$Attrition_Flag-pred_lm_model7_clus)^2); sse_lm7
+sse_lm8 = sum((test3$Attrition_Flag-pred_lm_model8_clus)^2); sse_lm8
+sse_lm9 = sum((test4$Attrition_Flag-pred_lm_model9_clus)^2); sse_lm9
+
+
+```
+
+```{r}
+predOverall = c(pred_lm_model6_clus, pred_lm_model7_clus, pred_lm_model8_clus, pred_lm_model9_clus)
+Attrition_Flagg_Overall = c(test1$Attrition_Flag,test2$Attrition_Flag, test3$Attrition_Flag,test4$Attrition_Flag)
+sse_Overall = sum((predOverall - Attrition_Flagg_Overall)^2); sse_Overall
+
+```
+
+
+```{r}
+#Let us compare the sse for the best linear model on the entire data to the sse for models on clusters.
+paste('SSE for model on entire data',sse_lm1)
+
+paste('SSE for model on clusters',sse_Overall)
+
+```
+
+
+```{r}
+#Linear clusters Regression Roc Curve & AUC
+
+library(pROC)
+
+test_roc_lm_clus = roc(test$Attrition_Flag ~ predOverall, plot = TRUE, print.auc = TRUE)
+
+as.numeric(test_roc_lm_clus$auc)
+
+
+```
+
+
+
+
+```{r}
+#Cluster Then Predict Using Tree
+library(rpart)
+library(rpart.plot)
+
+tree1 = rpart(Attrition_Flag~.,train1)
+tree2 = rpart(Attrition_Flag~.,train2)
+tree3 = rpart(Attrition_Flag~.,train3)
+tree4 = rpart(Attrition_Flag~.,train4)
+
+pred_tree1 = predict(tree1,newdata=test1)
+pred_tree2 = predict(tree2,newdata=test2)
+pred_tree3 = predict(tree3,newdata=test3)
+pred_tree4 = predict(tree4,newdata=test4)
+
+sse_tree1 = sum((test1$Attrition_Flag-pred_tree1)^2); sse_tree1
+sse_tree2 = sum((test2$Attrition_Flag-pred_tree2)^2); sse_tree2
+sse_tree3 = sum((test3$Attrition_Flag-pred_tree3)^2); sse_tree3
+sse_tree4 = sum((test4$Attrition_Flag-pred_tree4)^2); sse_tree4
+
+predTreeCombine = c(pred_tree1, pred_tree2, pred_tree3, pred_tree4)
+Attrition_Flag_Overall = c(test1$Attrition_Flag,test2$Attrition_Flag, test3$Attrition_Flag,test4$Attrition_Flag)
+sseTreeCombine = sum((predTreeCombine - Attrition_Flag_Overall)^2); sseTreeCombine
+
+```
+
+```{r}
+#Let us compare the sse for model on the entire data to the sse for models on clusters.
+paste('SSE for classification tree model on entire data',sse_classTree1)
+paste('SSE for regression tree model on entire data',sse_regTree1)
+paste('SSE for model on clusters',sseTreeCombine)
+
+
+```
+
+
+```{r}
+#Clusters Tree Roc Curve
+library(ROCR) 
+
+ROCRpred = prediction(predTreeCombine,test$Attrition_Flag) 
+ROCRperf = performance(ROCRpred,"tpr","fpr") 
+plot(ROCRperf)
+```
+
+
+```{r}
+
+#Prep for Neural network
+
+#convert categorical variables/characters to factors
+
+str(train)
+
+train$Attrition_Flag_asNumbers_factor = factor(train$Attrition_Flag_asNumbers)
+train$Gender_factor = factor(train$Gender)
+train$Education_Level_factor = factor(train$Education_Level)
+train$Marital_Status_factor = factor(train$Marital_Status)
+train$Income_Category_factor = factor(train$Income_Category)
+train$Card_Category_factor = factor(train$Card_Category)
+train$Customer_Age_Grouped_factor = factor(train$Customer_Age_Grouped)
+train$avg_balance_per_grouped_factor = factor(train$avg_balance_per_grouped)
+head(train)
+
+```
+
+```{r}
+#prepare data with validation
+
+split = sample(x = c('train','validation','test'),size = nrow(BankChurners),replace = T,prob = c(0.4,0.4,0.2))
+train = BankChurners[split=='train',]
+validation = BankChurners[split=='validation',]
+test = BankChurners[split=='test',]
+```
+
+```{r}
+
+#Basic Neural Network
+
+library(nnet)
+
+nn_model1 = nnet(Attrition_Flag_asNumbers_factor ~ Customer_Age+Gender_factor+Dependent_count+Education_Level_factor+Marital_Status_factor+Income_Category_factor+Card_Category_factor+Months_on_book+Num_Of_Products+Months_Inactive_12_mon+Contacts_Count_12_mon+Credit_Limit+Total_Revolving_Bal+Total_Amt_Chng_Q4_Q1+Total_Trans_Amt+Total_Trans_Ct+Total_Ct_Chng_Q4_Q1+Avg_Utilization_Ratio+Customer_Age_Grouped_factor+avg_balance_per+avg_balance_per_grouped_factor, data = train,
+             size=5,
+             decay=0.1,
+             MaxNWts=10000,
+             maxit=100) 
+
+
+pred_train_prob = predict(nn_model1)
+pred_train_prob
+
+sum(pred_train_prob)
+
+pred_train = predict(nn_model1,type='class')
+
+pred_train #predicted as 0 for all, currently not resulting any 1's (needs some 1's in the results to run accuracy)
+
+mean(pred_train==train$Attrition_Flag_asNumbers_factor) #accuracy
+
+```
+
+```{r}
+#Single Layer Network with h20
+
+library(h2o)
+h2o.init()
+
+train_h2o = as.h2o(train)
+test_h2o = as.h2o(test)
+
+validation_h2o = as.h2o(validation)
+
+
+model2 = h2o.deeplearning(x=0:20000,
+                         y = 1,
+                         training_frame = train_h2o,
+                         hidden = c(5),
+                         seed=1031)
+
+pred = h2o.predict(model2,newdata = validation_h2o)
+
+#Performance on validation sample
+
+mean(pred[1]==validation_h2o$Attrition_Flag_asNumbers_factor) # Accuracy
+
+h2o.confusionMatrix(model2,validation_h2o) # Using a built-in function
+
+
+
+
+
+```
+
+```{r}
+
+#Neural Network with Two Hidden Layers
+
+#Hidden Layers: 2
+
+model3 = h2o.deeplearning(x=2:785,
+                         y = 1,
+                         training_frame = train_h2o,
+                        
+                         hidden = c(5,5),
+                         seed=1031)
+
+
+
+
+pred = h2o.predict(model3,validation_h2o)
+
+mean(pred[1]==validation_h2o$label) # Accuracy
+
+h2o.confusionMatrix(model3,validation_h2o) # Using a built-in function
+
+```
