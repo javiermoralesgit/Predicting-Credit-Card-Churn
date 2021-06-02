@@ -1,2 +1,6 @@
-# Predicting-Credit-Card-Churn
-Finding Hidden Patterns of Credit Card Holder’s Churn through the use of different Machine Learning modeling techniques such as Linear Regression, Logistic Regression, Decision Tree, Clustering and Neural Networks.
+# Predicting Credit Card Churn
+Finding Hidden Patterns of Credit Card Holder’s Churn through the use of different Machine Learning modeling techniques such as Linear Regression, Logistic Regression, Decision Tree, Clustering and Neural Networks as part of a final group project for my Applied Analytics Frameworks & Methods II course at Columbia University. Other authors to this code are as follows: Anna Ustin, Fernando Libertella, Thomas Cooper.
+
+First models used were a simple Linear Regression and Logistic Regression model to do some exploratory analysis in order to single out which variables have a strong influence with the Attrition Flag variable. A Decision Tree Model was run with the very significant variables selected from the exploratory analysis. The accuracy of the Logistic Regression and Decision Tree model was used using a confusion matrix. The confusion matrix will measure the correctly classified and incorrectly classified values broken down by each class which are the churners and non-churners.
+
+Several Clustering Techniques were used in order to understand the Credit Card Customer Dataset. The Neural Network model had input values of a consumer’s income, marital status, and outstanding loans that could produce the output predicting the probability that the consumer will default on a loan.
